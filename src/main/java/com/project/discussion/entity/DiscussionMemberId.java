@@ -5,7 +5,7 @@ import java.util.Objects;
 
 public class DiscussionMemberId implements Serializable {
     private Long discussionId;
-    private String userId; // Используем String, чтобы соответствовать UUID пользователей
+    private String userId;
 
     public DiscussionMemberId() {}
 

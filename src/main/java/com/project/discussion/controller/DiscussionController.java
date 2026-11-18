@@ -5,14 +5,21 @@ import com.project.discussion.dto.InvitationCreateRequest;
 import com.project.discussion.dto.MemberRequest;
 import com.project.discussion.dto.UpdateDiscussionRequest;
 import com.project.discussion.entity.DiscussionMembers;
+import com.project.discussion.entity.Discussions;
+import com.project.discussion.entity.Invitation;
 import com.project.discussion.service.DiscussionMemberService;
 import com.project.discussion.service.DiscussionService;
 import com.project.discussion.service.InvitationService;
-import java.util.List;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/discussions")
+@Validated
 public class DiscussionController {
 
     private final DiscussionService discussionService;
@@ -28,46 +35,53 @@ public class DiscussionController {
     }
 
     @PostMapping
-    public void createDiscussion(@RequestBody CreateDiscussionRequest request) {
-        discussionService.createDiscussion(request);
+    public ResponseEntity<Discussions> createDiscussion( @Valid @RequestBody CreateDiscussionRequest request) {
+        Discussions created = discussionService.createDiscussion(request);
+        return ResponseEntity.created(URI.create("/api/discussions/" + created.getId()))
+                .body(created);
     }
 
     @GetMapping("/{id}")
-    public Object getDiscussion(@PathVariable Long id) {
-        return discussionService.getById(id);
+    public ResponseEntity<Discussions> getDiscussion(@PathVariable Long id) {
+        return ResponseEntity.ok(discussionService.getById(id));
     }
 
     @PutMapping("/{id}")
-    public void updateDiscussion(@PathVariable Long id,
-                                 @RequestBody UpdateDiscussionRequest request) {
-        discussionService.updateDiscussion(id, request);
+    public ResponseEntity<Discussions> updateDiscussion(@PathVariable Long id,
+                                                        @RequestBody UpdateDiscussionRequest request) {
+        return ResponseEntity.ok(discussionService.updateDiscussion(id, request));
     }
 
     @DeleteMapping("/{id}")
-    public void deleteDiscussion(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteDiscussion(@PathVariable Long id) {
         discussionService.deleteDiscussion(id);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/members")
-    public void addMember(@PathVariable Long id,
-                          @RequestBody MemberRequest request) {
+    public ResponseEntity<Void> addMember(@PathVariable Long id,
+                                          @RequestBody MemberRequest request) {
         memberService.addMember(id, request);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{id}/members")
-    public List<DiscussionMembers> getMembers(@PathVariable Long id) {
-        return memberService.getMembers(id);
+    public ResponseEntity<List<DiscussionMembers>> getMembers(@PathVariable Long id) {
+        return ResponseEntity.ok(memberService.getMembers(id));
     }
 
     @DeleteMapping("/{id}/members/{userId}")
-    public void removeMember(@PathVariable Long id,
-                             @PathVariable String userId) {
+    public ResponseEntity<Void> removeMember(@PathVariable Long id,
+                                             @PathVariable String userId) {
         memberService.removeMember(id, userId);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/invitations")
-    public void createInvitation(@PathVariable Long id,
-                                 @RequestBody InvitationCreateRequest request) {
-        invitationService.createInvitation(id, request);
+    public ResponseEntity<Invitation> createInvitation(@PathVariable Long id,
+                                                       @RequestBody InvitationCreateRequest request) {
+        Invitation created = invitationService.createInvitation(id, request);
+        return ResponseEntity.created(URI.create("/api/discussions/" + id + "/invitations/" + created.getId()))
+                .body(created);
     }
 }

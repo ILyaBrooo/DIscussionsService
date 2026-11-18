@@ -18,6 +18,21 @@ public class DiscussionMemberService {
         this.repository = repository;
     }
 
+    public boolean isMember(Long discussionId, String userId) {
+        if (discussionId == null || userId == null) {
+            throw new IllegalArgumentException("Discussion ID and User ID cannot be null");
+        }
+        return repository.existsByDiscussionIdAndUserId(discussionId, userId);
+    }
+
+    public boolean isAdmin(Long discussionId, String userId) {
+        if (discussionId == null || userId == null) {
+            throw new IllegalArgumentException("Discussion ID and User ID cannot be null");
+        }
+        return repository.findByDiscussionId(discussionId).stream()
+                .anyMatch(m -> m.getUserId().equals(userId) && "ADMIN".equals(m.getRole()));
+    }
+
     public List<DiscussionMembers> getMembers(Long discussionId) {
         if (discussionId == null) {
             throw new IllegalArgumentException("Discussion ID cannot be null");
@@ -34,13 +49,13 @@ public class DiscussionMemberService {
             throw new IllegalArgumentException("User ID in request cannot be null");
         }
 
-        if (repository.existsByDiscussionIdAndUserId(discussionId, request.getUserId())) {
+        if (isMember(discussionId, request.getUserId())) {
             throw new IllegalStateException("User is already a member of this discussion");
         }
 
         DiscussionMembers member = new DiscussionMembers();
         member.setDiscussionId(discussionId);
-        member.setUserId(request.getUserId()); // String
+        member.setUserId(request.getUserId());
 
         String role = (request.getRole() != null) ? request.getRole() : "MEMBER";
         member.setRole(role);
@@ -50,9 +65,21 @@ public class DiscussionMemberService {
     }
 
     @Transactional
-    public void removeMember(Long discussionId, String userId) { // String
+    public void removeMember(Long discussionId, String userId) {
         if (discussionId == null || userId == null) {
             throw new IllegalArgumentException("Discussion ID and User ID cannot be null");
+        }
+
+        List<DiscussionMembers> members = repository.findByDiscussionId(discussionId);
+
+        if (members.stream()
+                .anyMatch(m -> m.getUserId().equals(userId) && "ADMIN".equals(m.getRole()))) {
+            long adminCount = members.stream()
+                    .filter(m -> "ADMIN".equals(m.getRole()))
+                    .count();
+            if (adminCount == 1) {
+                throw new IllegalStateException("Cannot leave: you are the last administrator");
+            }
         }
 
         int deletedCount = repository.deleteByDiscussionIdAndUserId(discussionId, userId);

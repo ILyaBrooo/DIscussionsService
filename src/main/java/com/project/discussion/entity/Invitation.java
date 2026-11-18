@@ -1,8 +1,8 @@
 package com.project.discussion.entity;
 
-import java.time.LocalDateTime;
+import jakarta.persistence.*;
 
-import jakarta.persistence.*; // или javax.persistence, в зависимости от версии JPA
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "invitations")
@@ -12,42 +12,85 @@ public class Invitation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "discussion_id", nullable = false)
+    // Внешний ключ на обсуждение. Объектную ссылку на Discussions убрали,
+    // потому что она дублировала эту же колонку (discussion_id).
+    @Column(name = "discussion_id")
     private Long discussionId;
 
-    @Column(name = "user_id", nullable = false)
     private String userId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", length = 20)
     private Status status;
 
-    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
-
-    @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;
 
     public enum Status {
-        PENDING, ACCEPTED, REJECTED, EXPIRED
+        PENDING, ACCEPTED, DECLINED, EXPIRED
     }
 
-    // Геттеры и сеттеры
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    // Конструктор по умолчанию (обязателен для JPA)
+    public Invitation() {
+    }
 
-    public Long getDiscussionId() { return discussionId; }
-    public void setDiscussionId(Long discussionId) { this.discussionId = discussionId; }
+    // Конструктор со всеми полями
+    public Invitation(Long id, Long discussionId, String userId, Status status,
+                      LocalDateTime createdAt, LocalDateTime expiresAt) {
+        this.id = id;
+        this.discussionId = discussionId;
+        this.userId = userId;
+        this.status = status;
+        this.createdAt = createdAt;
+        this.expiresAt = expiresAt;
+    }
 
-    public String getUserId() { return userId; }
-    public void setUserId(String userId) { this.userId = userId; }
+    // Геттеры
+    public Long getId() {
+        return id;
+    }
 
-    public Status getStatus() { return status; }
-    public void setStatus(Status status) { this.status = status; }
+    public Long getDiscussionId() {
+        return discussionId;
+    }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public String getUserId() {
+        return userId;
+    }
 
-    public LocalDateTime getExpiresAt() { return expiresAt; }
-    public void setExpiresAt(LocalDateTime expiresAt) { this.expiresAt = expiresAt; }
+    public Status getStatus() {
+        return status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getExpiresAt() {
+        return expiresAt;
+    }
+
+    // Сеттеры
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setDiscussionId(Long discussionId) {
+        this.discussionId = discussionId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public void setExpiresAt(LocalDateTime expiresAt) {
+        this.expiresAt = expiresAt;
+    }
 }

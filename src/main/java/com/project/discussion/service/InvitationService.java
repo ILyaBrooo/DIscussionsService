@@ -23,9 +23,16 @@ public class InvitationService {
             throw new IllegalArgumentException("Invitee ID cannot be null");
         }
 
+        String inviteeId = String.valueOf(request.getInviteeId());
+
+        // Нельзя приглашать одного и того же пользователя в одно обсуждение дважды
+        if (repository.existsByDiscussionIdAndUserId(discussionId, inviteeId)) {
+            throw new IllegalStateException("User already invited to this discussion");
+        }
+
         Invitation invitation = new Invitation();
-        invitation.setDiscussionId(discussionId); // Или можно брать из request.getDiscussionId(), если он там есть
-        invitation.setUserId(String.valueOf(request.getInviteeId())); // Приводим к String, если поле в Entity типа String
+        invitation.setDiscussionId(discussionId);
+        invitation.setUserId(inviteeId);
         invitation.setStatus(Invitation.Status.PENDING);
         invitation.setCreatedAt(LocalDateTime.now());
         invitation.setExpiresAt(LocalDateTime.now().plusDays(7));
